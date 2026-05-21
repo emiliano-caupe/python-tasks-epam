@@ -1,2 +1,2 @@
 # python-tasks-epam
-This are the Python tasks to present to EPAM course.
+These are the Python tasks to present to EPAM course.
