@@ -12,3 +12,8 @@ output "lambda_function_arn" {
   description = "Lambda function ARN"
   value       = aws_lambda_function.python_tasks.arn
 }
+
+output "api_endpoint" {
+  description = "API Gateway endpoint URL"
+  value       = "${aws_apigatewayv2_stage.python_tasks.invoke_url}/run"
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Python Tasks</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f5f5f5;
+    }
+ 
+    h1 { color: #333; }
+ 
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 24px;
+    }
+ 
+    button:hover { background: #0056b3; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+ 
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+ 
+    .card h2 { margin: 0 0 12px; font-size: 18px; color: #333; }
+ 
+    .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 15px;
+    }
+ 
+    .row:last-child { border-bottom: none; }
+    .key { color: #666; }
+    .val { font-weight: bold; color: #007bff; }
+ 
+    #status { color: #888; margin-bottom: 16px; font-size: 14px; }
+    #status.ok  { color: green; }
+    #status.err { color: red; }
+  </style>
+</head>
+<body>
+ 
+  <h1>🐍 Python Tasks — AWS Lambda</h1>
+  <p>Click the button to invoke the Lambda function and see the results.</p>
+ 
+  <button id="btn" onclick="runLambda()">▶ Run Lambda</button>
+  <p id="status">Ready.</p>
+ 
+  <div id="results"></div>
+ 
+  <script>
+    const API_URL = "https://3tqydp1x4a.execute-api.us-east-1.amazonaws.com//run";
+ 
+    async function runLambda() {
+      const btn = document.getElementById("btn");
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+ 
+      btn.disabled = true;
+      btn.textContent = "Loading...";
+      status.className = "";
+      status.textContent = "Calling Lambda...";
+      results.innerHTML = "";
+ 
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        const body = typeof data === "string" ? JSON.parse(data) : 
+             data.body ? (typeof data.body === "string" ? JSON.parse(data.body) : data.body) : data;
+ 
+        status.className = "ok";
+        status.textContent = "✓ Lambda responded successfully!";
+ 
+        results.innerHTML = `
+          <div class="card">
+            <h2>📖 Task 1 — Dictionary</h2>
+            ${rows(body.task1_dictionary)}
+          </div>
+          <div class="card">
+            <h2>💸 Task 2 — How much will you spend?</h2>
+            ${rows(body.task2_spending)}
+          </div>
+          <div class="card">
+            <h2>🔤 Task 3 — Nth Letter</h2>
+            ${rows(body.task3_nth_letter)}
+          </div>
+        `;
+ 
+      } catch (err) {
+        status.className = "err";
+        status.textContent = "✗ Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "▶ Run Lambda";
+      }
+    }
+ 
+    function rows(data) {
+      return Object.entries(data).map(([k, v]) =>
+        `<div class="row">
+          <span class="key">${k}</span>
+          <span class="val">${v === "" ? '(empty)' : v}</span>
+        </div>`
+      ).join("");
+    }
+  </script>
+ 
+</body>
+</html>
