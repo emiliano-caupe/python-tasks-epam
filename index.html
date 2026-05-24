@@ -6,14 +6,15 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 700px;
+      max-width: 750px;
       margin: 40px auto;
       padding: 0 20px;
       background: #f5f5f5;
     }
- 
+
     h1 { color: #333; }
- 
+    p.subtitle { color: #666; margin-bottom: 24px; }
+
     button {
       background: #007bff;
       color: white;
@@ -24,10 +25,9 @@
       cursor: pointer;
       margin-bottom: 24px;
     }
- 
     button:hover { background: #0056b3; }
     button:disabled { background: #aaa; cursor: not-allowed; }
- 
+
     .card {
       background: white;
       border-radius: 8px;
@@ -35,9 +35,10 @@
       margin-bottom: 16px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
- 
-    .card h2 { margin: 0 0 12px; font-size: 18px; color: #333; }
- 
+
+    .card h2 { margin: 0 0 16px; font-size: 18px; color: #333; }
+
+    /* shared row style */
     .row {
       display: flex;
       justify-content: space-between;
@@ -45,64 +46,116 @@
       border-bottom: 1px solid #eee;
       font-size: 15px;
     }
- 
     .row:last-child { border-bottom: none; }
-    .key { color: #666; }
-    .val { font-weight: bold; color: #007bff; }
- 
+    .key   { color: #555; }
+    .val   { font-weight: bold; color: #007bff; }
+    .found { color: green; }
+    .miss  { color: #cc0000; }
+
+    /* Task 2 */
+    .prices-box {
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: #555;
+    }
+    .prices-box span { margin-right: 16px; }
+    .calc-block {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .calc-block:last-child { margin-bottom: 0; }
+    .calc-label { font-weight: bold; color: #333; margin-bottom: 8px; }
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      padding: 3px 0;
+      color: #555;
+    }
+    .calc-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: bold;
+      color: #007bff;
+      border-top: 1px solid #eee;
+      margin-top: 6px;
+      padding-top: 6px;
+    }
+
+    /* Task 3 */
+    .t3-block {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .t3-block:last-child { margin-bottom: 0; }
+    .t3-input { font-size: 13px; color: #888; margin-bottom: 8px; }
+    .t3-letters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .t3-letter {
+      background: #f0f4ff;
+      border: 1px solid #c0d0ff;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+      color: #333;
+    }
+    .t3-letter span { color: #007bff; font-weight: bold; }
+    .t3-result { font-size: 15px; font-weight: bold; color: #007bff; }
+
     #status { color: #888; margin-bottom: 16px; font-size: 14px; }
     #status.ok  { color: green; }
     #status.err { color: red; }
   </style>
 </head>
 <body>
- 
+
   <h1>🐍 Python Tasks — AWS Lambda</h1>
-  <p>Click the button to invoke the Lambda function and see the results.</p>
- 
+  <p class="subtitle">Docker · ECR · Lambda · API Gateway · Terraform · GitHub Actions</p>
+
   <button id="btn" onclick="runLambda()">▶ Run Lambda</button>
   <p id="status">Ready.</p>
- 
+
   <div id="results"></div>
- 
+
   <script>
     const API_URL = "https://3tqydp1x4a.execute-api.us-east-1.amazonaws.com//run";
- 
+
     async function runLambda() {
       const btn = document.getElementById("btn");
       const status = document.getElementById("status");
       const results = document.getElementById("results");
- 
+
       btn.disabled = true;
       btn.textContent = "Loading...";
       status.className = "";
       status.textContent = "Calling Lambda...";
       results.innerHTML = "";
- 
+
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        const body = typeof data === "string" ? JSON.parse(data) : 
-             data.body ? (typeof data.body === "string" ? JSON.parse(data.body) : data.body) : data;
- 
+        const body = typeof data === "string" ? JSON.parse(data) :
+                     data.body ? (typeof data.body === "string" ? JSON.parse(data.body) : data.body) : data;
+
         status.className = "ok";
         status.textContent = "✓ Lambda responded successfully!";
- 
-        results.innerHTML = `
-          <div class="card">
-            <h2>📖 Task 1 — Dictionary</h2>
-            ${rows(body.task1_dictionary)}
-          </div>
-          <div class="card">
-            <h2>💸 Task 2 — How much will you spend?</h2>
-            ${rows(body.task2_spending)}
-          </div>
-          <div class="card">
-            <h2>🔤 Task 3 — Nth Letter</h2>
-            ${rows(body.task3_nth_letter)}
-          </div>
-        `;
- 
+        results.innerHTML = renderTask1(body.task1_dictionary)
+                          + renderTask2(body.task2_spending)
+                          + renderTask3(body.task3_nth_letter);
+
       } catch (err) {
         status.className = "err";
         status.textContent = "✗ Error: " + err.message;
@@ -111,16 +164,71 @@
         btn.textContent = "▶ Run Lambda";
       }
     }
- 
-    function rows(data) {
-      return Object.entries(data).map(([k, v]) =>
-        `<div class="row">
-          <span class="key">${k}</span>
-          <span class="val">${v === "" ? '(empty)' : v}</span>
-        </div>`
-      ).join("");
+
+    function renderTask1(data) {
+      const rows = Object.entries(data.entries).map(([word, def]) => {
+        const found = !def.startsWith("Can't find");
+        return `<div class="row">
+          <span class="key">${word}</span>
+          <span class="val ${found ? 'found' : 'miss'}">${def}</span>
+        </div>`;
+      }).join("");
+      return `<div class="card">
+        <h2>📖 Task 1 — Dictionary</h2>
+        <p style="font-size:13px;color:#888;margin-bottom:12px">
+          Words added: <b>Apple</b>, <b>Car</b> &nbsp;|&nbsp; Words looked up: Apple, Car, Banana
+        </p>
+        ${rows}
+      </div>`;
+    }
+
+    function renderTask2(data) {
+      const prices = Object.entries(data.prices)
+        .map(([k,v]) => `<span>🏷️ ${k}: <b>$${v}</b></span>`).join("");
+
+      const calcs = data.calculations.map(c => `
+        <div class="calc-block">
+          <div class="calc-label">${c.label}</div>
+          <div class="calc-row"><span>Items: ${c.items.join(' + ')}</span><span>$${c.subtotal}</span></div>
+          <div class="calc-row"><span>Tax (${c.tax_pct})</span><span>+ $${c.tax_amount}</span></div>
+          <div class="calc-total"><span>Total</span><span>$${c.total}</span></div>
+        </div>
+      `).join("");
+
+      return `<div class="card">
+        <h2>💸 Task 2 — How much will you spend?</h2>
+        <div class="prices-box">${prices}</div>
+        ${calcs}
+      </div>`;
+    }
+
+    function renderTask3(data) {
+      const blocks = data.map(ex => {
+        if (ex.input.length === 0) {
+          return `<div class="t3-block">
+            <div class="t3-input">Input: [] (empty array)</div>
+            <div class="t3-result">Result: (empty)</div>
+          </div>`;
+        }
+        const letters = ex.breakdown.map(b =>
+          `<div class="t3-letter">${b.word}[${b.index}] → <span>${b.letter}</span></div>`
+        ).join("");
+        return `<div class="t3-block">
+          <div class="t3-input">Input: [${ex.input.map(w => `"${w}"`).join(', ')}]</div>
+          <div class="t3-letters">${letters}</div>
+          <div class="t3-result">Result: "${ex.result}"</div>
+        </div>`;
+      }).join("");
+
+      return `<div class="card">
+        <h2>🔤 Task 3 — Nth Letter</h2>
+        <p style="font-size:13px;color:#888;margin-bottom:12px">
+          Takes the nth letter from each word, where n is the word's position in the list.
+        </p>
+        ${blocks}
+      </div>`;
     }
   </script>
- 
+
 </body>
 </html>
